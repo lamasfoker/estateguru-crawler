@@ -22,12 +22,16 @@ class EstateguruCrawlerCommand extends Command
 
     private const TELEGRAM_SEND_MESSAGE_ENDPOINT = 'https://api.telegram.org/bot%s/sendMessage';
 
-    private const TEMPLATE_TELEGRAM_MESSAGE = <<<TELEGRAM
+    private const TEMPLATE_TELEGRAM_MESSAGE_FOUND = <<<TELEGRAM
 🏠 <a href="%s">NUOVO PROGETTO</a> 🏠
 
 💰 Interesse: <b>%s</b>
 📊 LTV: <b>%s</b>
 🕑 Durata: <b>%d mesi</b>
+TELEGRAM;
+
+    private const TEMPLATE_TELEGRAM_MESSAGE_NOT_FOUND = <<<TELEGRAM
+😢 Nessun progetto trovato 😢
 TELEGRAM;
 
     protected static $defaultName = 'lamasfoker:estateguru-crawl';
@@ -149,12 +153,21 @@ TELEGRAM;
                     'chat_id' => $this->myTelegramClientId,
                     'parse_mode' => 'HTML',
                     'text' => sprintf(
-                        self::TEMPLATE_TELEGRAM_MESSAGE,
+                        self::TEMPLATE_TELEGRAM_MESSAGE_FOUND,
                         $loan['url'],
                         $loan['interest'],
                         $loan['ltv'],
                         $loan['months']
                     )
+                ]
+            ]);
+        }
+        if (count($loans) === 0) {
+            $this->client->request('POST', $endpoint, [
+                'body' => [
+                    'chat_id' => $this->myTelegramClientId,
+                    'parse_mode' => 'HTML',
+                    'text' => self::TEMPLATE_TELEGRAM_MESSAGE_NOT_FOUND
                 ]
             ]);
         }
