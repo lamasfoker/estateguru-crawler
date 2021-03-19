@@ -1,4 +1,6 @@
 {
+    "name": "lamasfoker/estateguru-crawler",
+    "description": "Get a notification on Telegram with the current available loan on Estateguru",
     "type": "project",
     "license": "proprietary",
     "require": {
