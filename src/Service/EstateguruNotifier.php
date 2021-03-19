@@ -27,10 +27,6 @@ final class EstateguruNotifier
 🕑 Durata: <b>%d mesi</b>
 TELEGRAM;
 
-    private const TEMPLATE_TELEGRAM_MESSAGE_NOT_FOUND = <<<TELEGRAM
-😢 Nessun progetto trovato 😢
-TELEGRAM;
-
     private HttpClientInterface $client;
 
     private CrawlerFactory $crawlerFactory;
@@ -143,15 +139,6 @@ TELEGRAM;
                         $loan['ltv'],
                         $loan['months']
                     )
-                ]
-            ]);
-        }
-        if (count($loans) === 0) {
-            $this->client->request('POST', $endpoint, [
-                'body' => [
-                    'chat_id' => $this->myTelegramClientId,
-                    'parse_mode' => 'HTML',
-                    'text' => self::TEMPLATE_TELEGRAM_MESSAGE_NOT_FOUND
                 ]
             ]);
         }
