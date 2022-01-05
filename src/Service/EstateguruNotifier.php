@@ -10,6 +10,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
 
 final class EstateguruNotifier
 {
@@ -48,12 +49,19 @@ TELEGRAM;
         $this->estateguruCrawlerBotTelegramSecretToken = $estateguruCrawlerBotTelegramSecretToken;
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     */
     public function notify(): void
     {
-        $loansIds = $this->crawlLoansIds();
-        $loans = $this->crawlLoans($loansIds);
-        $filteredLoans = $this->filterLoans($loans);
-        $this->sendTelegramMessages($filteredLoans);
+        try {
+            $loansIds = $this->crawlLoansIds();
+            $loans = $this->crawlLoans($loansIds);
+            $filteredLoans = $this->filterLoans($loans);
+            $this->sendLoans($filteredLoans);
+        } catch (Throwable $e) {
+            $this->sentTelegramMessage($e->getMessage());
+        }
     }
 
     /**
@@ -68,8 +76,7 @@ TELEGRAM;
         $response = $this->client->request('GET', self::ESTATEGURU_NEW_OPEN_LOANS_AJAX_REQUEST_URL);
         $crawler = $this->crawlerFactory->create();
         $crawler->addHtmlContent($response->getContent());
-        $links = $crawler->filter('a.btn.btn-regular.w-100');
-        return $links->each(function (Crawler $link) {
+        return $crawler->filter('a.btn.btn-regular.w-100')->each(function (Crawler $link) {
             return explode('/', $link->attr('href'))[4];
         });
     }
@@ -113,7 +120,7 @@ TELEGRAM;
 
     private function filterLoans(array $loans): array
     {
-        return array_filter($loans, function (array $loan) {
+        return array_filter($loans, static function (array $loan) {
             if ($loan['months'] > 12) {
                 return false;
             }
@@ -124,23 +131,34 @@ TELEGRAM;
         });
     }
 
-    private function sendTelegramMessages(array $loans): void
+    /**
+     * @throws TransportExceptionInterface
+     */
+    private function sendLoans(array $loans): void
+    {
+        foreach ($loans as $loan) {
+            $this->sentTelegramMessage(sprintf(
+                self::TEMPLATE_TELEGRAM_MESSAGE_FOUND,
+                $loan['url'],
+                $loan['interest'],
+                $loan['ltv'],
+                $loan['months']
+            ));
+        }
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     */
+    private function sentTelegramMessage(string $content): void
     {
         $endpoint = sprintf(self::TELEGRAM_SEND_MESSAGE_ENDPOINT, $this->estateguruCrawlerBotTelegramSecretToken);
-        foreach ($loans as $loan) {
-            $this->client->request('POST', $endpoint, [
-                'body' => [
-                    'chat_id' => $this->myTelegramClientId,
-                    'parse_mode' => 'HTML',
-                    'text' => sprintf(
-                        self::TEMPLATE_TELEGRAM_MESSAGE_FOUND,
-                        $loan['url'],
-                        $loan['interest'],
-                        $loan['ltv'],
-                        $loan['months']
-                    )
-                ]
-            ]);
-        }
+        $this->client->request('POST', $endpoint, [
+            'body' => [
+                'chat_id' => $this->myTelegramClientId,
+                'parse_mode' => 'HTML',
+                'text' => $content
+            ]
+        ]);
     }
 }
