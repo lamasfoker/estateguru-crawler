@@ -9,3 +9,4 @@
 /vendor/
 ###< symfony/framework-bundle ###
 /deploy.sh
+/composer.phar
