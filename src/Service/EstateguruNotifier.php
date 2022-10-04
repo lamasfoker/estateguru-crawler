@@ -14,9 +14,9 @@ use Throwable;
 
 final class EstateguruNotifier
 {
-    private const ESTATEGURU_LOAN_VIEW_PAGE_REQUEST_URL = 'https://estateguru.co/portal/investment/show/%s';
+    private const ESTATEGURU_LOAN_VIEW_PAGE_REQUEST_URL = 'https://app.estateguru.co/investment/show/%s';
 
-    private const ESTATEGURU_NEW_OPEN_LOANS_AJAX_REQUEST_URL = 'https://estateguru.co/portal/investment/ajaxGetProjectMainList?filterTableId=dataTablePrimaryMarket&filter_interestRate=11&filter_ltvRatio=70&filter_currentCashType=APPROVED';
+    private const ESTATEGURU_NEW_OPEN_LOANS_AJAX_REQUEST_URL = 'https://app.estateguru.co/investment/ajaxGetProjectMainList?filterTableId=dataTablePrimaryMarket&filter_interestRate=11&filter_ltvRatio=70&filter_currentCashType=APPROVED';
 
     private const TELEGRAM_SEND_MESSAGE_ENDPOINT = 'https://api.telegram.org/bot%s/sendMessage';
 
@@ -32,8 +32,7 @@ TELEGRAM;
 
     private CrawlerFactory $crawlerFactory;
 
-    /** @var string */
-    private $myTelegramClientId;
+    private string $myTelegramClientId;
 
     private string $estateguruCrawlerBotTelegramSecretToken;
 
@@ -77,7 +76,7 @@ TELEGRAM;
         $crawler = $this->crawlerFactory->create();
         $crawler->addHtmlContent($response->getContent());
         return $crawler->filter('a.btn.btn-regular.w-100')->each(function (Crawler $link) {
-            return explode('/', $link->attr('href'))[4];
+            return explode('/', $link->attr('href'))[3];
         });
     }
 
