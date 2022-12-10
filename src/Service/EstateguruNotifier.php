@@ -16,9 +16,11 @@ final class EstateguruNotifier
 {
     private const ESTATEGURU_LOAN_VIEW_PAGE_REQUEST_URL = 'https://app.estateguru.co/investment/show/%s';
 
-    private const ESTATEGURU_NEW_OPEN_LOANS_AJAX_REQUEST_URL = 'https://app.estateguru.co/investment/ajaxGetProjectMainList?filterTableId=dataTablePrimaryMarket&filter_interestRate=11&filter_ltvRatio=70&filter_currentCashType=APPROVED';
+    private const ESTATEGURU_NEW_OPEN_LOANS_AJAX_REQUEST_URL = 'https://app.estateguru.co/investment/ajaxGetProjectMainList?filterTableId=dataTablePrimaryMarket&filter_interestRate=10&filter_ltvRatio=70&filter_currentCashType=APPROVED';
 
     private const TELEGRAM_SEND_MESSAGE_ENDPOINT = 'https://api.telegram.org/bot%s/sendMessage';
+
+    private const ESTATEGURU_AVAIABLE_LOCATIONS = ['Lithuania', 'Estonia', 'Finland', 'Germany', 'Latvia', 'Netherlands', 'Portugal', 'Spain', 'Sweden', 'UK'];
 
     private const TEMPLATE_TELEGRAM_MESSAGE_FOUND = <<<TELEGRAM
 🏠 <a href="%s">NUOVO PROGETTO</a> 🏠
@@ -106,13 +108,17 @@ TELEGRAM;
             $rank = $crawler->reduce(function (Crawler $node) {
                 return strpos($node->text(), 'rank') !== false;
             });
+            $country = $crawler->reduce(function (Crawler $node) {
+                return in_array($node->text(), self::ESTATEGURU_AVAIABLE_LOCATIONS, true);
+            });
             return [
                 'id' => $id,
                 'url' => $url,
                 'interest' => $interest->text(),
                 'ltv' => $ltv->text(),
                 'months' => (int)str_replace(' months', '', $month->text()),
-                'rank' => $rank->text()
+                'rank' => $rank->text(),
+                'location' => $country->text()
             ];
         }, $ids);
     }
@@ -124,6 +130,9 @@ TELEGRAM;
                 return false;
             }
             if ($loan['rank'] !== 'First rank') {
+                return false;
+            }
+            if (in_array($loan['location'], ['Germany', 'Finland'], true)) {
                 return false;
             }
             return true;
