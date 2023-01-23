@@ -1,12 +1,13 @@
 name: "Send Message"
 
 on:
+    push:
     schedule:
         - cron: "0 14 * * *"
 
 env:
     APP_ENV: prod
-    APP_DEBUG: 0
+    APP_DEBUG: 1
     ESTATEGURU_CRAWLER_BOT_TELEGRAM_SECRET_TOKEN: ${{ secrets.ESTATEGURU_CRAWLER_BOT_TELEGRAM_SECRET_TOKEN }}
     MY_TELEGRAM_CLIENT_ID: ${{ secrets.MY_TELEGRAM_CLIENT_ID }}
 
@@ -39,4 +40,4 @@ jobs:
                 run: composer install --verbose --prefer-dist --no-progress --no-interaction --no-dev --optimize-autoloader --no-scripts
 
             -   name: Activate Command
-                run: bin/console -e prod lamasfoker:estateguru-crawl --no-debug -vv
+                run: bin/console -e prod lamasfoker:estateguru-crawl -vvv
