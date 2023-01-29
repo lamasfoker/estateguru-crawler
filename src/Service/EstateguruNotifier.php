@@ -132,7 +132,7 @@ TELEGRAM;
             if ($loan['rank'] !== 'First rank') {
                 return false;
             }
-            if (in_array($loan['location'], ['Germany', 'Finland'], true)) {
+            if (in_array($loan['location'], ['Germany', 'Finland', 'Lithuania'], true)) {
                 return false;
             }
             return true;
