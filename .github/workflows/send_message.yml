@@ -2,8 +2,8 @@ name: "Send Message"
 
 on:
     push:
-    schedule:
-        - cron: "0 14 * * *"
+#    schedule:
+#        - cron: "0 14 * * *"
 
 env:
     APP_ENV: "prod"
